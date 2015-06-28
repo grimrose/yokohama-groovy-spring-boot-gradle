@@ -16,3 +16,12 @@ http://www.databaseanswers.org/data_models/library/index.htm
 
 [Gradle徹底入門](http://www.shoeisha.co.jp/book/detail/9784798136431)
 [はじめてのSpring Boot](https://www.kohgakusha.co.jp/books/detail/978-4-7775-1865-4)
+
+
+## システムテスト
+
+Firefoxが予めインストールされていること。
+
+``` sh
+$ gradle clean functionalTest
+```
