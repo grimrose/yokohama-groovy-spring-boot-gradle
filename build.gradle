@@ -21,6 +21,16 @@ def defaultEncoding = "UTF-8"
 tasks.withType(AbstractCompile) { options.encoding = defaultEncoding }
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 
+
+sourceSets {
+    integrationTest {
+        groovy.srcDir file("src/integrationTest/groovy")
+        resources.srcDir file("src/integrationTest/resources")
+        compileClasspath = sourceSets.main.output + configurations.testCompile
+        runtimeClasspath = output + compileClasspath + configurations.testRuntime
+    }
+}
+
 repositories {
     jcenter()
 }
@@ -41,8 +51,26 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.12'
 
     testCompile "org.springframework.boot:spring-boot-starter-test"
+
+    // integration
+    testCompile 'org.spockframework:spock-spring:1.0-groovy-2.4'
+
 }
 
 wrapper {
     gradleVersion = '2.4'
+}
+
+test {
+    reports.html.destination = file("${reports.html.destination}/unit")
+    reports.junitXml.destination = file("${reports.junitXml.destination}/unit")
+}
+
+task integrationTest(type: Test) {
+    group = "verification"
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    reports.html.destination = file("${reports.html.destination}/integration")
+    reports.junitXml.destination = file("${reports.junitXml.destination}/integration")
 }
