@@ -67,7 +67,8 @@ dependencies {
     testCompile 'org.gebish:geb-spock:0.10.0', {
         exclude group: "org.codehaus.groovy"
     }
-    testCompile "org.seleniumhq.selenium:selenium-firefox-driver:2.43.1"
+    testCompile 'org.seleniumhq.selenium:selenium-firefox-driver:2.46.0'
+
 }
 
 wrapper {
