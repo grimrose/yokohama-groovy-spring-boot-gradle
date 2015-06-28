@@ -3,7 +3,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.4.RELEASE")
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.4.RELEASE"
+        classpath "org.akhikhl.gretty:gretty:1.2.4"
     }
 }
 
@@ -11,6 +12,7 @@ apply plugin: 'groovy'
 apply plugin: 'war'
 apply plugin: 'idea'
 apply plugin: 'spring-boot'
+apply plugin: "org.akhikhl.gretty"
 
 jar {
     version =  '1.0'
@@ -21,11 +23,16 @@ def defaultEncoding = "UTF-8"
 tasks.withType(AbstractCompile) { options.encoding = defaultEncoding }
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 
-
 sourceSets {
     integrationTest {
         groovy.srcDir file("src/integrationTest/groovy")
         resources.srcDir file("src/integrationTest/resources")
+        compileClasspath = sourceSets.main.output + configurations.testCompile
+        runtimeClasspath = output + compileClasspath + configurations.testRuntime
+    }
+    functionalTest {
+        groovy.srcDir file("src/functionalTest/groovy")
+        resources.srcDir file("src/functionalTest/resources")
         compileClasspath = sourceSets.main.output + configurations.testCompile
         runtimeClasspath = output + compileClasspath + configurations.testRuntime
     }
@@ -44,21 +51,32 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-jetty"
     compile "org.springframework.boot:spring-boot-starter-actuator"
     compile "org.springframework.boot:spring-boot-starter-thymeleaf"
-
-    compile "org.springframework:spring-jdbc"
+    compile 'org.springframework.boot:spring-boot-starter-jdbc'
 
     runtime "com.h2database:h2:1.4.+"
     compile 'org.slf4j:slf4j-api:1.7.12'
 
     testCompile "org.springframework.boot:spring-boot-starter-test"
 
-    // integration
-    testCompile 'org.spockframework:spock-spring:1.0-groovy-2.4'
+    // integration test
+    testCompile 'org.spockframework:spock-spring:1.0-groovy-2.4', {
+        exclude group: "org.codehaus.groovy"
+    }
 
+    // functional test
+    testCompile 'org.gebish:geb-spock:0.10.0', {
+        exclude group: "org.codehaus.groovy"
+    }
+    testCompile "org.seleniumhq.selenium:selenium-firefox-driver:2.43.1"
 }
 
 wrapper {
     gradleVersion = '2.4'
+}
+
+gretty {
+    springBoot = true
+    integrationTestTask = "functionalTest"
 }
 
 test {
@@ -68,9 +86,24 @@ test {
 
 task integrationTest(type: Test) {
     group = "verification"
+
     testClassesDir = sourceSets.integrationTest.output.classesDir
     classpath = sourceSets.integrationTest.runtimeClasspath
 
     reports.html.destination = file("${reports.html.destination}/integration")
     reports.junitXml.destination = file("${reports.junitXml.destination}/integration")
+}
+
+task functionalTest(type: Test) {
+    group = "verification"
+
+    testClassesDir = sourceSets.functionalTest.output.classesDir
+    classpath = sourceSets.functionalTest.runtimeClasspath
+
+    reports.html.destination = file("${reports.html.destination}/functional")
+    reports.junitXml.destination = file("${reports.junitXml.destination}/functional")
+
+    systemProperty 'geb.env', 'firefox'
+    systemProperty 'geb.build.reportsDir', reporting.file("geb")
+
 }
