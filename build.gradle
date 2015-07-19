@@ -3,20 +3,28 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.4.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.5.RELEASE"
         classpath "org.akhikhl.gretty:gretty:1.2.4"
+        classpath "org.flywaydb:flyway-gradle-plugin:3.2.1"
     }
 }
 
 apply plugin: 'groovy'
 apply plugin: 'war'
 apply plugin: 'idea'
+apply plugin: 'jacoco'
 apply plugin: 'spring-boot'
 apply plugin: "org.akhikhl.gretty"
+apply plugin: 'org.flywaydb.flyway'
 
 jar {
     version =  '1.0'
 }
+
+ext {
+    springBootVersion = "1.2.5.RELEASE"
+}
+
 
 def defaultEncoding = "UTF-8"
 
@@ -45,18 +53,25 @@ repositories {
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.3'
 
-    compile "org.springframework.boot:spring-boot-starter-web", {
+    compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion", {
         exclude module: "spring-boot-starter-tomcat"
     }
-    compile "org.springframework.boot:spring-boot-starter-jetty"
-    compile "org.springframework.boot:spring-boot-starter-actuator"
-    compile "org.springframework.boot:spring-boot-starter-thymeleaf"
-    compile 'org.springframework.boot:spring-boot-starter-jdbc'
+    compile "org.springframework.boot:spring-boot-starter-jetty:$springBootVersion"
+    compile "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
+    compile "org.springframework.boot:spring-boot-starter-thymeleaf:$springBootVersion"
+    compile "org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion"
 
     runtime "com.h2database:h2:1.4.+"
+    compile 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
+
+    compile 'org.flywaydb:flyway-core:3.2.1'
+
     compile 'org.slf4j:slf4j-api:1.7.12'
 
-    testCompile "org.springframework.boot:spring-boot-starter-test"
+    // hibernate validator
+    runtime 'org.glassfish.web:javax.el:2.2.4'
+
+    testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 
     // integration test
     testCompile 'org.spockframework:spock-spring:1.0-groovy-2.4', {
@@ -108,3 +123,5 @@ task functionalTest(type: Test) {
     systemProperty 'geb.build.reportsDir', reporting.file("geb")
 
 }
+
+check.dependsOn integrationTest
